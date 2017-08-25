@@ -17,8 +17,11 @@
 @property (nonatomic, strong) SFSpeechAudioBufferRecognitionRequest *recognitionRequest; //处理了语音识别请求，它给语音识别提供了语音输入。
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask; //告诉你语音识别对象的结果，拥有这个对象很方便因为你可以用它删除或者中断任务。
 @property (nonatomic, strong) AVAudioEngine *audioEngine; //语音引擎，它负责提供你的语音输入。
+@property (nonatomic, copy) NSString *language; //支持的语言，zh-CN:中文，en-US:英文，zh_TW:台湾繁体，zh_HK:香港繁体
+@property (nonatomic, copy) NSString *hints; //提示语
 @property (nonatomic, strong) AVSpeechSynthesizer *speechSynthesizer; //合成引擎
-
+@property (nonatomic) int randomNumber; //随机数
+           
 @end
 
 @implementation ViewController
@@ -27,6 +30,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
+    _hints = @"欢迎参与数字精灵游戏，我从0到100中选个数字，需要你猜出准确值，开始吧。"; //@"This is the UITextView"
     /*
      在info.plist文件里添加了两个键值：
      NSMicrophoneUsageDescription -为获取麦克风语音输入授权的自定义消息。注意这个语音输入授权仅仅只会在用户点击microphone按钮时发生。
@@ -42,7 +46,7 @@
     CGFloat viewHeight = CGRectGetHeight(self.view.bounds) - 2 * originY - buttonHeight - spaceY;
     _recognizeTextView = [[UITextView alloc] initWithFrame:(CGRect){originX, originY, viewWidth, viewHeight}];
     [_recognizeTextView setFont:[UIFont systemFontOfSize:20]];
-    [_recognizeTextView setText:@"This is the UITextView"];
+    [_recognizeTextView setText:_hints];
     [self.view addSubview:_recognizeTextView];
     
     originY += viewHeight + spaceY;
@@ -53,47 +57,11 @@
     [self.view addSubview:_microphoneButton];
     [_microphoneButton addTarget:self action:@selector(microphoneButtonDidClicked:) forControlEvents:UIControlEventTouchUpInside];
     _microphoneButton.enabled = NO;
+    _microphoneButton.hidden = YES;
     
-    /*
-     苹果支持的语言如下:
-     Arabic (ar-SA)
-     Chinese (zh-CN, zh-HK, zh-TW)
-     Czech (cs-CZ)
-     Danish (da-DK)
-     Dutch (nl-BE, nl-NL)
-     English (en-AU, en-GB, en-IE, en-US, en-ZA)
-     Finnish (fi-FI)
-     French (fr-CA, fr-FR)
-     German (de-DE)
-     Greek (el-GR)
-     Hebrew (he-IL)
-     Hindi (hi-IN)
-     Hungarian (hu-HU)
-     Indonesian (id-ID)
-     Italian (it-IT)
-     Japanese (ja-JP)
-     Korean (ko-KR)
-     Norwegian (no-NO)
-     Polish (pl-PL)
-     Portuguese (pt-BR, pt-PT)
-     Romanian (ro-RO)
-     Russian (ru-RU)
-     Slovak (sk-SK)
-     Spanish (es-ES, es-MX)
-     Swedish (sv-SE)
-     Thai (th-TH)
-     Turkish (tr-TR)
-     */
-    _speechSynthesizer = [[AVSpeechSynthesizer alloc] init];
-    _speechSynthesizer.delegate = self;
-    AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:@"欢迎参与数字精灵游戏，我从0到100中选个数字，需要你猜出准确值，开始吧。"];
-    AVSpeechSynthesisVoice *voiceType = [AVSpeechSynthesisVoice voiceWithLanguage:@"zh-CN"];
-    utterance.voice = voiceType;
-    //设置语速
-    utterance.rate = AVSpeechUtteranceDefaultSpeechRate;
-    //设置音量
-    utterance.volume = 1;
-    [self.speechSynthesizer speakUtterance:utterance];
+    [self speechSynthesizerWithText:_hints];
+    _randomNumber = arc4random() % 100;
+    NSLog(@"随机数：%d", _randomNumber);
     
     /* 申请用户语音识别权限
      The app's Info.plist must contain an NSSpeechRecognitionUsageDescription key with a string value explaining to the user how the app uses this data.
@@ -112,8 +80,7 @@
         switch (status) {
             case SFSpeechRecognizerAuthorizationStatusAuthorized:
             {
-                NSString *localeIdentifier = @"zh_CN"; //zh-CN:中文，en-US:英文，zh_TW:台湾繁体，zh_HK:香港繁体
-                _speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[[NSLocale alloc] initWithLocaleIdentifier:localeIdentifier]];
+                _speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[[NSLocale alloc] initWithLocaleIdentifier:_language]];
                 _speechRecognizer.delegate = self;
                 
                 _audioEngine = [[AVAudioEngine alloc] init];
@@ -195,6 +162,20 @@
             //如果结果 result 不是nil, 把 textView.text 的值设置为我们的最优文本。如果结果是最终结果，设置 isFinal为true。
             _recognizeTextView.text = result.bestTranscription.formattedString;
             isFinal = result.isFinal;
+            
+            if (isFinal) {
+                [self microphoneButtonDidClicked:nil];
+                int guessNumber = [result.bestTranscription.formattedString intValue];
+                if (guessNumber > 100 || guessNumber < 0) {
+                    [self speechSynthesizerWithText:@"不好意思，数字必须在0到100之间，请重猜。"];
+                } else if (guessNumber > _randomNumber) {
+                    [self speechSynthesizerWithText:@"猜大了，请重猜。"];
+                } else if (guessNumber < _randomNumber) {
+                    [self speechSynthesizerWithText:@"猜小了，请重猜。"];
+                } else {
+                    [self speechSynthesizerWithText:@"恭喜你，答案正确。"];
+                }
+            }
         }
         
         if (error || isFinal) {
@@ -225,7 +206,54 @@
         
     }
     
-    _recognizeTextView.text = @"Say something, I'm listening!";
+//    _recognizeTextView.text = @"Say something, I'm listening!";
+    _recognizeTextView.text = @"请说出你的答案";
+}
+
+- (void)speechSynthesizerWithText:(NSString *)text {
+    /*
+     苹果支持的语言如下:
+     Arabic (ar-SA)
+     Chinese (zh-CN, zh-HK, zh-TW)
+     Czech (cs-CZ)
+     Danish (da-DK)
+     Dutch (nl-BE, nl-NL)
+     English (en-AU, en-GB, en-IE, en-US, en-ZA)
+     Finnish (fi-FI)
+     French (fr-CA, fr-FR)
+     German (de-DE)
+     Greek (el-GR)
+     Hebrew (he-IL)
+     Hindi (hi-IN)
+     Hungarian (hu-HU)
+     Indonesian (id-ID)
+     Italian (it-IT)
+     Japanese (ja-JP)
+     Korean (ko-KR)
+     Norwegian (no-NO)
+     Polish (pl-PL)
+     Portuguese (pt-BR, pt-PT)
+     Romanian (ro-RO)
+     Russian (ru-RU)
+     Slovak (sk-SK)
+     Spanish (es-ES, es-MX)
+     Swedish (sv-SE)
+     Thai (th-TH)
+     Turkish (tr-TR)
+     */
+    if (!_speechSynthesizer) {
+        _speechSynthesizer = [[AVSpeechSynthesizer alloc] init];
+        _speechSynthesizer.delegate = self;
+    }
+    _language = @"zh-CN";
+    AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:text];
+    AVSpeechSynthesisVoice *voiceType = [AVSpeechSynthesisVoice voiceWithLanguage:_language];
+    utterance.voice = voiceType;
+    //设置语速
+    utterance.rate = AVSpeechUtteranceDefaultSpeechRate;
+    //设置音量
+    utterance.volume = 1;
+    [_speechSynthesizer speakUtterance:utterance];
 }
 
 - (void)didReceiveMemoryWarning {
