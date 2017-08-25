@@ -21,6 +21,7 @@
 @property (nonatomic, copy) NSString *hints; //提示语
 @property (nonatomic, strong) AVSpeechSynthesizer *speechSynthesizer; //合成引擎
 @property (nonatomic) int randomNumber; //随机数
+@property (nonatomic) BOOL isGameOver; //游戏结束
            
 @end
 
@@ -59,9 +60,7 @@
     _microphoneButton.enabled = NO;
     _microphoneButton.hidden = YES;
     
-    [self speechSynthesizerWithText:_hints];
-    _randomNumber = arc4random() % 100;
-//    NSLog(@"随机数：%d", _randomNumber);
+    [self startGame];
     
     /* 申请用户语音识别权限
      The app's Info.plist must contain an NSSpeechRecognitionUsageDescription key with a string value explaining to the user how the app uses this data.
@@ -106,6 +105,13 @@
             _microphoneButton.enabled = isButtonEnabled;
         });
     }];
+}
+
+- (void)startGame {
+    [self speechSynthesizerWithText:_hints];
+    _isGameOver = NO;
+    _randomNumber = arc4random() % 100;
+    //    NSLog(@"随机数：%d", _randomNumber);
 }
 
 - (IBAction)microphoneButtonDidClicked:(id)sender {
@@ -165,16 +171,26 @@
             isFinal = result.isFinal;
             
             if (isFinal) {
-                //                [self microphoneButtonDidClicked:nil];
-                int guessNumber = [result.bestTranscription.formattedString intValue];
-                if (guessNumber > 100 || guessNumber < 0) {
-                    [self speechSynthesizerWithText:@"不好意思，数字必须在0到100之间，请重猜。"];
-                } else if (guessNumber > _randomNumber) {
-                    [self speechSynthesizerWithText:@"猜大了，请重猜。"];
-                } else if (guessNumber < _randomNumber) {
-                    [self speechSynthesizerWithText:@"猜小了，请重猜。"];
+                if (_isGameOver) {
+                    NSArray *answers = @[@"是", @"好", @"可以"];
+                    for (NSUInteger i = 0; i < answers.count; i++) {
+                        if ([result.bestTranscription.formattedString containsString:answers[i]]) {
+                            [self startGame];
+                        }
+                    }
                 } else {
-                    [self speechSynthesizerWithText:@"恭喜你，答案正确。"];
+                    //                [self microphoneButtonDidClicked:nil];
+                    int guessNumber = [result.bestTranscription.formattedString intValue];
+                    if (guessNumber > 100 || guessNumber < 0) {
+                        [self speechSynthesizerWithText:@"不好意思，数字必须在0到100之间，请重猜。"];
+                    } else if (guessNumber > _randomNumber) {
+                        [self speechSynthesizerWithText:@"猜大了，请重猜。"];
+                    } else if (guessNumber < _randomNumber) {
+                        [self speechSynthesizerWithText:@"猜小了，请重猜。"];
+                    } else {
+                        _isGameOver = YES;
+                        [self speechSynthesizerWithText:@"恭喜你，答案正确，再玩一次吗？"];
+                    }
                 }
             }
         }
@@ -207,8 +223,10 @@
         
     }
     
+    if (_isGameOver) {
+        _recognizeTextView.text = [NSString stringWithFormat:@"正确答案是%d，请说出你的答案", _randomNumber];
+    }
 //    _recognizeTextView.text = @"Say something, I'm listening!";
-    _recognizeTextView.text = @"请说出你的答案";
 }
 
 - (void)speechSynthesizerWithText:(NSString *)text {
@@ -259,6 +277,7 @@
     //本句朗读结束后要延迟多少秒再接着朗读下一秒
     utterance.postUtteranceDelay = 0.1;
     [_speechSynthesizer speakUtterance:utterance];
+    _microphoneButton.hidden = YES;
 }
 
 - (void)didReceiveMemoryWarning {
