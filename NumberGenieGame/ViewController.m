@@ -30,7 +30,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    _hints = @"欢迎参与数字精灵游戏，我从0到100中选个数字，需要你猜出准确值，开始吧。"; //@"This is the UITextView"
+    _hints = @"从0到100中猜个数字，游戏开始。"; //@"This is the UITextView"
     /*
      在info.plist文件里添加了两个键值：
      NSMicrophoneUsageDescription -为获取麦克风语音输入授权的自定义消息。注意这个语音输入授权仅仅只会在用户点击microphone按钮时发生。
@@ -61,7 +61,7 @@
     
     [self speechSynthesizerWithText:_hints];
     _randomNumber = arc4random() % 100;
-    NSLog(@"随机数：%d", _randomNumber);
+//    NSLog(@"随机数：%d", _randomNumber);
     
     /* 申请用户语音识别权限
      The app's Info.plist must contain an NSSpeechRecognitionUsageDescription key with a string value explaining to the user how the app uses this data.
@@ -131,7 +131,8 @@
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *errorSession = nil;
     @try {
-        [audioSession setCategory:AVAudioSessionCategoryRecord error:&errorSession];
+        //AVAudioSessionCategoryPlayAndRecord支持录音与播放
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&errorSession];
         [audioSession setMode:AVAudioSessionModeMeasurement error:&errorSession];
         [audioSession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&errorSession];
     } @catch (NSException *exception) {
@@ -164,7 +165,7 @@
             isFinal = result.isFinal;
             
             if (isFinal) {
-                [self microphoneButtonDidClicked:nil];
+                //                [self microphoneButtonDidClicked:nil];
                 int guessNumber = [result.bestTranscription.formattedString intValue];
                 if (guessNumber > 100 || guessNumber < 0) {
                     [self speechSynthesizerWithText:@"不好意思，数字必须在0到100之间，请重猜。"];
@@ -253,6 +254,10 @@
     utterance.rate = AVSpeechUtteranceDefaultSpeechRate;
     //设置音量
     utterance.volume = 1;
+    //设置声调,属性值介于0.5(低音调)~2.0(高音调)之间
+    utterance.pitchMultiplier = 0.8;
+    //本句朗读结束后要延迟多少秒再接着朗读下一秒
+    utterance.postUtteranceDelay = 0.1;
     [_speechSynthesizer speakUtterance:utterance];
 }
 
@@ -268,12 +273,13 @@
 
 #pragma mark - AVSpeechSynthesizerDelegate
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didStartSpeechUtterance:(AVSpeechUtterance *)utterance {
-    
+//    NSLog(@"didStartSpeechUtterance");
 }
 
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance {
-    NSLog(@"didFinishSpeechUtterance");
+//    NSLog(@"didFinishSpeechUtterance");
     [self microphoneButtonDidClicked:nil];
+    _microphoneButton.hidden = NO;
 }
 
 @end
