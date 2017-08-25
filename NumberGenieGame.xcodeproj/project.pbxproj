@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F328BB041F50143400AAE825 /* icon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F328BB031F50143400AAE825 /* icon@3x.png */; };
+		F328BB061F50151700AAE825 /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F328BB051F50151700AAE825 /* icon@2x.png */; };
 		F3E942161F500DB900980D51 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F3E942151F500DB900980D51 /* main.m */; };
 		F3E942191F500DB900980D51 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F3E942181F500DB900980D51 /* AppDelegate.m */; };
 		F3E9421C1F500DB900980D51 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F3E9421B1F500DB900980D51 /* ViewController.m */; };
@@ -35,6 +37,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F328BB031F50143400AAE825 /* icon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon@3x.png"; sourceTree = "<group>"; };
+		F328BB051F50151700AAE825 /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon@2x.png"; sourceTree = "<group>"; };
 		F3E942111F500DB900980D51 /* NumberGenieGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NumberGenieGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3E942151F500DB900980D51 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F3E942171F500DB900980D51 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -101,6 +105,8 @@
 		F3E942131F500DB900980D51 /* NumberGenieGame */ = {
 			isa = PBXGroup;
 			children = (
+				F328BB051F50151700AAE825 /* icon@2x.png */,
+				F328BB031F50143400AAE825 /* icon@3x.png */,
 				F3E942171F500DB900980D51 /* AppDelegate.h */,
 				F3E942181F500DB900980D51 /* AppDelegate.m */,
 				F3E9421A1F500DB900980D51 /* ViewController.h */,
@@ -251,7 +257,9 @@
 			files = (
 				F3E942241F500DB900980D51 /* LaunchScreen.storyboard in Resources */,
 				F3E942211F500DB900980D51 /* Assets.xcassets in Resources */,
+				F328BB041F50143400AAE825 /* icon@3x.png in Resources */,
 				F3E9421F1F500DB900980D51 /* Main.storyboard in Resources */,
+				F328BB061F50151700AAE825 /* icon@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -518,6 +526,7 @@
 				F3E942401F500DBA00980D51 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F3E942411F500DBA00980D51 /* Build configuration list for PBXNativeTarget "NumberGenieGameTests" */ = {
 			isa = XCConfigurationList;
@@ -526,6 +535,7 @@
 				F3E942431F500DBA00980D51 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F3E942441F500DBA00980D51 /* Build configuration list for PBXNativeTarget "NumberGenieGameUITests" */ = {
 			isa = XCConfigurationList;
@@ -534,6 +544,7 @@
 				F3E942461F500DBA00980D51 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
