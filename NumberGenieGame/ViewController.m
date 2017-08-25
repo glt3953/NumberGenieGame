@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import <Speech/Speech.h>
 
-@interface ViewController () <SFSpeechRecognizerDelegate>
+@interface ViewController () <SFSpeechRecognizerDelegate, AVSpeechSynthesizerDelegate>
 
 @property (nonatomic, strong) UITextView *recognizeTextView;
 @property (nonatomic, strong) UIButton *microphoneButton;
@@ -17,6 +17,7 @@
 @property (nonatomic, strong) SFSpeechAudioBufferRecognitionRequest *recognitionRequest; //处理了语音识别请求，它给语音识别提供了语音输入。
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask; //告诉你语音识别对象的结果，拥有这个对象很方便因为你可以用它删除或者中断任务。
 @property (nonatomic, strong) AVAudioEngine *audioEngine; //语音引擎，它负责提供你的语音输入。
+@property (nonatomic, strong) AVSpeechSynthesizer *speechSynthesizer; //合成引擎
 
 @end
 
@@ -52,6 +53,47 @@
     [self.view addSubview:_microphoneButton];
     [_microphoneButton addTarget:self action:@selector(microphoneButtonDidClicked:) forControlEvents:UIControlEventTouchUpInside];
     _microphoneButton.enabled = NO;
+    
+    /*
+     苹果支持的语言如下:
+     Arabic (ar-SA)
+     Chinese (zh-CN, zh-HK, zh-TW)
+     Czech (cs-CZ)
+     Danish (da-DK)
+     Dutch (nl-BE, nl-NL)
+     English (en-AU, en-GB, en-IE, en-US, en-ZA)
+     Finnish (fi-FI)
+     French (fr-CA, fr-FR)
+     German (de-DE)
+     Greek (el-GR)
+     Hebrew (he-IL)
+     Hindi (hi-IN)
+     Hungarian (hu-HU)
+     Indonesian (id-ID)
+     Italian (it-IT)
+     Japanese (ja-JP)
+     Korean (ko-KR)
+     Norwegian (no-NO)
+     Polish (pl-PL)
+     Portuguese (pt-BR, pt-PT)
+     Romanian (ro-RO)
+     Russian (ru-RU)
+     Slovak (sk-SK)
+     Spanish (es-ES, es-MX)
+     Swedish (sv-SE)
+     Thai (th-TH)
+     Turkish (tr-TR)
+     */
+    _speechSynthesizer = [[AVSpeechSynthesizer alloc] init];
+    _speechSynthesizer.delegate = self;
+    AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:@"欢迎参与数字精灵游戏，我从0到100中选个数字，需要你猜出准确值，开始吧。"];
+    AVSpeechSynthesisVoice *voiceType = [AVSpeechSynthesisVoice voiceWithLanguage:@"zh-CN"];
+    utterance.voice = voiceType;
+    //设置语速
+    utterance.rate = AVSpeechUtteranceDefaultSpeechRate;
+    //设置音量
+    utterance.volume = 1;
+    [self.speechSynthesizer speakUtterance:utterance];
     
     /* 申请用户语音识别权限
      The app's Info.plist must contain an NSSpeechRecognitionUsageDescription key with a string value explaining to the user how the app uses this data.
@@ -194,6 +236,16 @@
 #pragma mark - SFSpeechRecognizerDelegate
 - (void)speechRecognizer:(SFSpeechRecognizer *)speechRecognizer availabilityDidChange:(BOOL)available {
     _microphoneButton.enabled = available;
+}
+
+#pragma mark - AVSpeechSynthesizerDelegate
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didStartSpeechUtterance:(AVSpeechUtterance *)utterance {
+    
+}
+
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance {
+    NSLog(@"didFinishSpeechUtterance");
+    [self microphoneButtonDidClicked:nil];
 }
 
 @end
