@@ -223,7 +223,7 @@
         
     }
     
-    if (_isGameOver) {
+    if (!_isGameOver) {
         _recognizeTextView.text = [NSString stringWithFormat:@"正确答案是%d，请说出你的答案", _randomNumber];
     }
 //    _recognizeTextView.text = @"Say something, I'm listening!";
